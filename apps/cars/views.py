@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
@@ -17,21 +18,9 @@ class CarsListView(APIView):
             qs = qs.filter(auto_park=auto_park_id)
 
         serializer = CarSerializer(qs, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class CarRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = CarModel.objects.all()
     serializer_class = CarSerializer
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return super().patch(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
