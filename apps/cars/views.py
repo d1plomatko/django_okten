@@ -1,13 +1,15 @@
 from rest_framework import status
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 from .models import CarModel
 from .serializers import CarSerializer
+from rest_framework.permissions import AllowAny
 
 
 class CarsListView(APIView):
+    permission_classes = (AllowAny,)
 
     def get(self, *args, **kwargs):
         qs = CarModel.objects.all()
