@@ -4,15 +4,18 @@ from typing import Type
 from django.contrib.auth import get_user_model
 
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, UpdateAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from apps.auto_parks.serializers import AutoParkSerializer
 from apps.users.models import UserModel as User
 
+from core.services.email_service import EmailService
+from core.services.jwt_service import JWTService, ResetPasswordToken
+
 from .permissions import IsSuperUser
-from .serializers import AvatarSerializer, UserSerializer
+from .serializers import AvatarSerializer, EmailSerializer, PasswordSerializer, UserSerializer
 
 UserModel: Type[User] = get_user_model()
 
@@ -102,3 +105,29 @@ class AddAvatarView(UpdateAPIView):
 
     def get_object(self):
         return self.request.user.profile
+
+
+class ResetPasswordView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, *args, **kwargs):
+        email = self.request.data
+        serializer = EmailSerializer(data=email)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(UserModel, email=serializer.data.get('email'))
+        EmailService.reset_password_email(user)
+        return Response(status=status.HTTP_200_OK)
+
+
+class SaveNewPasswordView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def patch(self, *args, **kwargs):
+        token = kwargs.get('token')
+        user = JWTService.validate_token(token, ResetPasswordToken)
+        password = self.request.data
+        serializer = PasswordSerializer(data=password)
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.data.get('password'))
+        user.save()
+        return Response(status=status.HTTP_200_OK)
