@@ -1,8 +1,11 @@
-from django.db import models
 import datetime
 
-from apps.auto_parks.models import AutoParkModel
 from django.core import validators as V
+from django.db import models
+
+from apps.auto_parks.models import AutoParkModel
+
+from .services import upload_photo
 
 date = datetime.date.today()
 
@@ -26,6 +29,7 @@ class CarModel(models.Model):
     engine_volume = models.FloatField(validators=[
         V.MinValueValidator(1), V.MaxValueValidator(4)
     ])
+    photo = models.ImageField(upload_to=upload_photo, blank=True)
     auto_park = models.ForeignKey(AutoParkModel, on_delete=models.CASCADE, related_name='cars')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
